@@ -3,6 +3,7 @@ package mmg.simplecompanion.v1
 import android.app.Activity
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
 import java.util.Locale
 import kotlin.let
 import kotlin.text.isEmpty
@@ -31,10 +32,10 @@ class AndroidTTSProvider : TTSProvider {
             tts = TextToSpeech(ctx) { status ->
                 if (status == TextToSpeech.SUCCESS) {
                     tts?.language = Locale.getDefault()
-                    //val voices = tts!!.getVoices()
-                    //val voiceList: MutableList<Voice?> = ArrayList<Voice?>(voices)
-                    //val selectedVoice = voiceList.get(3) // Change to the desired voice index
-                    //tts!!.setVoice(selectedVoice)
+                    val voices = tts!!.getVoices()
+                    val voiceList: MutableList<Voice?> = ArrayList<Voice?>(voices)
+                    val selectedVoice = voiceList.get(3) // Change to the desired voice index
+                    tts!!.setVoice(selectedVoice)
                     println("✅ Android TTS engine ready")
                     onInitialized()
                 } else {
