@@ -249,5 +249,6 @@ fun setActivityProvider(provider: () -> Activity?) {
 }
 
 fun getTTSProvider(): TTSProvider {
-    return AndroidTTSProvider()
+    //return AndroidTTSProvider()
+    return SileroTTSProvider()
 }

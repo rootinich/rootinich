@@ -125,7 +125,7 @@ class MainActivity: Activity(), RecognitionListener {
                 stopSpeechService()
                 stateDone()
                 speak(extractedValue)
-                Thread.sleep(2000);
+                Thread.sleep(2000)
                 startSpeechService()
                 stateMic()
              }
