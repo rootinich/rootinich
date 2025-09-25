@@ -237,7 +237,7 @@ class MainActivity: Activity(), RecognitionListener {
         }
     }
 
-    private fun stopSpeechService() {
+    public fun stopSpeechService() {
         setUiState(STATE_DONE)
         speechService!!.stop()
         speechService = null
