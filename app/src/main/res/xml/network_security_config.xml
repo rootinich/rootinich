@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">212.8.227.42</domain>
+    </domain-config>
+    <!-- Or, to permit cleartext traffic for all domains (HIGHLY DISCOURAGED): -->
+    <!-- <base-config cleartextTrafficPermitted="true">
+            <trust-anchors>
+                <certificates src="system" />
+            </trust-anchors>
+        </base-config> -->
+</network-security-config>
