@@ -24,7 +24,16 @@ import org.vosk.android.SpeechStreamService
 import org.vosk.android.StorageService
 import java.io.IOException
 
+val APP_NAME = listOf("ВЕРТЕР","ВЕРТЕ")
+const val PLUS = "%2B"
+val NEWS = listOf("НОВОСТИ","НОВОСТь")
+val SPEECH_APP = listOf(
+    "Да, слушаю Вас внимательно, говорите...",
+    "Можете уже говорить...", "Ну говорите уже что-нибудь...",
+    "Если Вы готовы, то можете сказать")
+
 class MainActivity: Activity(), RecognitionListener {
+
     private var model: Model? = null
     private var speechService: SpeechService? = null
     private var speechStreamService: SpeechStreamService? = null
@@ -115,21 +124,39 @@ class MainActivity: Activity(), RecognitionListener {
     }
     private val _currentWordRange = MutableStateFlow(-1..-1)
     private val _ttsState = MutableStateFlow(TTSState.IDLE)
-
+    private var isWork: Boolean = false
     override fun onResult(hypothesis: String?) {
             val afterTextKey = hypothesis?.substringAfter("\"text\" : \"")
             // Extract the part before the closing double quote
-            val extractedValue = afterTextKey?.substringBefore("\"")
+            var extractedValue = afterTextKey?.substringBefore("\"")
             if (extractedValue != null && extractedValue.isNotEmpty()) {
-                println(extractedValue)
-                stopSpeechService()
-                stateDone()
-                speak(extractedValue)
-                Thread.sleep(2000)
-                startSpeechService()
-                stateMic()
-             }
-        resultView!!.append(hypothesis + "\n")
+                resultView!!.append(extractedValue + "\n")
+                if (!isWork && APP_NAME.any {extractedValue.contains(it, ignoreCase = true)}) {
+                    val randomSpeech = SPEECH_APP.random()
+                    speak(randomSpeech, 5000)
+                    isWork = true
+                } else if (isWork) {
+                    if (NEWS.any {extractedValue.contains(it, ignoreCase = true)})
+                        extractedValue = getNews()
+                    speak(extractedValue, 4000)
+                    isWork = false
+                }
+            }
+        val state = speechService != null
+        resultView!!.append("$hypothesis $isWork $state \n")
+    }
+
+    private fun speak(text: String, time: Long) {
+        stopSpeechService()
+        stateDone()
+        speak(text)
+        Thread.sleep(time)
+        startSpeechService()
+        stateMic()
+    }
+
+    private fun getNews(): String {
+        return "Вы может$PLUS+е услыш$PLUS+ать самы$PLUS+е последни$PLUS+е и актуальны$PLUS+е новост$PLUS+и из первоисточник$PLUS+а..."
     }
 
     fun speak(text: String) {
@@ -246,8 +273,8 @@ class MainActivity: Activity(), RecognitionListener {
     private fun startSpeechService() {
         setUiState(STATE_MIC)
         try {
-            val rec = Recognizer(model, 16000.0f)
-            speechService = SpeechService(rec, 16000.0f)
+            val rec = Recognizer(model, 48000.0f)
+            speechService = SpeechService(rec, 48000.0f)
             speechService!!.startListening(this)
         } catch (e: IOException) {
             setErrorState(e.message)

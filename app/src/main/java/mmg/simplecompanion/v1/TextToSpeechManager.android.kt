@@ -1,9 +1,20 @@
 package mmg.simplecompanion.v1
 
 import android.app.Activity
+import android.media.MediaPlayer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.android.Android
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
 import java.util.Locale
 import kotlin.let
 import kotlin.text.isEmpty
@@ -12,11 +23,9 @@ import kotlin.text.isWhitespace
 import kotlin.text.substring
 import kotlin.text.take
 
-
 class AndroidTTSProvider : TTSProvider {
     private var tts: TextToSpeech? = null
     private var context = activityProvider.invoke()
-
     private var isPausedState = false
     private var originalText: String = ""
     private var pausedPosition = 0
@@ -239,6 +248,76 @@ class AndroidTTSProvider : TTSProvider {
     }
 }
 
+class SileroTTSProvider : TTSProvider {
+    val URL = "http://212.8.227.42:5010/getwav"
+    val SPEAKERS = listOf("xenia","kseniya", "baya", "aidar", "eugene")
+    val SAMPLE_RATE = "48000"
+    companion object {
+        val client get() = HttpClient(Android) { }
+    }
+    suspend fun getSound(text: String) {
+        val file = File.createTempFile("files", "index")
+        lateinit var response: HttpResponse
+        try {
+            val randomSpeaker = SPEAKERS.random()
+            response = client.get("$URL?text_to_speech=$text&speaker=$randomSpeaker&sample_rate=$SAMPLE_RATE&put_accent=1&put_yo=1")
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        val responseBody: ByteArray = response.body()
+        file.writeBytes(responseBody)
+        val mediaPlayer = MediaPlayer()
+        try {
+            mediaPlayer.setDataSource(file.path) // Replace with actual path
+            mediaPlayer.prepare() // Prepare the media for playback
+            mediaPlayer.start() // Start playback
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        client.close()
+    }
+
+    override fun initialize(onInitialized: () -> Unit) {
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun speak(
+        text: String,
+        onWordBoundary: (Int, Int) -> Unit,
+        onStart: () -> Unit,
+        onComplete: () -> Unit
+    ) {
+        GlobalScope.launch {
+            getSound("<speak>$text</speak>")
+        }
+
+    }
+
+    override fun stop() {
+        TODO("Not yet implemented")
+    }
+
+    override fun pause() {
+        TODO("Not yet implemented")
+    }
+
+    override fun resume() {
+        TODO("Not yet implemented")
+    }
+
+    override fun isPlaying(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun isPaused(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun release() {
+        TODO("Not yet implemented")
+    }
+
+}
 
 private var activityProvider: () -> Activity? = {
     null
